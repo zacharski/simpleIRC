@@ -1,7 +1,7 @@
 import os
 import uuid
 from flask import Flask, session, jsonify, request
-from flask.ext.socketio import SocketIO, emit, join_room, leave_room
+from flask_socketio import SocketIO, emit, join_room, leave_room
 
 app = Flask(__name__, static_url_path='')
 app.config['SECRET_KEY'] = 'secret!'
@@ -29,10 +29,10 @@ def updateRooms():
 @socketio.on('join')
 def on_join(room):
     leave_room(users[session['uuid']]['room'])
-    print 'Leaving room ' + users[session['uuid']]['room']
+    print ('Leaving room ' + users[session['uuid']]['room'])
     join_room(room)
     users[session['uuid']]['room'] = room
-    print users[session['uuid']]['username'] + " Joined room " + room
+    print (users[session['uuid']]['username'] + " Joined room " + room)
     
     
 @socketio.on('message')
@@ -40,7 +40,7 @@ def new_message(message):
     #tmp = {'text':message, 'name':'testName'}
     tmp = {'text':message['text'], 'room':message['room'], 'name':users[session['uuid']]['username']}
     messages.append(tmp)
-    print "Emiting to room " + message['room']
+    print ("Emiting to room " + message['room'])
     emit('message', tmp, room=message['room'])
     
 @socketio.on('identify')
@@ -48,15 +48,15 @@ def on_identify(message):
     
     if 'uuid' in session:
         users[session['uuid']]['username']=message
-        print "Howdy " +  users[session['uuid']]['username'] 
+        print ("Howdy " +  users[session['uuid']]['username'] ) 
         updateRoster()
     else:
-        print 'sending information'
+        print ('sending information')
         session['uuid']=uuid.uuid1()
         users[session['uuid']] = {'username': 'New Person', 'room': 'General'}
         join_room('General')
         session['username']='starter name'
-        print "New Person Joined room General"
+        print ("New Person Joined room General")
   
     
         updateRoster()
@@ -74,15 +74,15 @@ def on_disconnect():
 @app.route('/new_room', methods=['POST'])
 def new_room():
     rooms.append(request.get_json()['name'])
-    print 'updating rooms'
+    print ('updating rooms')
     updateRooms()
-    print 'back'
+    #print 'back'
 
     return jsonify(success= "ok")
 
 @app.route('/')
 def hello_world():
-    print 'in hello world'
+    #print 'in hello world'
     return app.send_static_file('index.html')
     return 'Hello World!'
 
@@ -102,7 +102,7 @@ def static_proxy_img(path):
     return app.send_static_file(os.path.join('img', path))
     
 if __name__ == '__main__':
-    print "A"
+    print ("A")
 
-    socketio.run(app, host=os.getenv('IP', '0.0.0.0'), port=int(os.getenv('PORT', 8080)))
+    socketio.run(app, host='0.0.0.0', port=80)
      
